@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build --prefix apps/frontend",
+    "postinstall": "cd apps/backend && npx prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@prisma/client": "^5.10.0"
+    "@prisma/client": "^5.22.0"
   }
 }

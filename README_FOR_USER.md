@@ -10,15 +10,11 @@
 ## 🌐 Deploying to GitHub & Vercel
 
 ### 1. Push to GitHub
-Run these commands in terminal:
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin YOUR_GITHUB_REPO_URL
-git push -u origin main
-```
+I have created a helper script for you.
+1. Create a new repository on GitHub.
+2. Copy the Repository URL (it looks like `https://github.com/username/jyotish.git`).
+3. Double-click the `push_to_github.bat` file in this folder.
+4. Paste your URL when asked and press Enter.
 
 ### 2. Deploy Frontend to Vercel
 1. Go to [Vercel.com](https://vercel.com) -> New Project.
@@ -31,10 +27,9 @@ git push -u origin main
 1. **New Project** -> Import `jyotish` again.
 2. **Root Directory**: `apps/backend`.
 3. **Env Variables**:
-   - `DATABASE_URL`: Your production Postgres URL (from Neon.tech or similar).
+   - `DATABASE_URL`: Your Neon **Pooled** Connection String (starts with `postgres://...` and is found in Neon Dashboard).
+   - `DIRECT_URL`: Your Neon **Unpooled** Connection String (needed for migrations).
    - `JWT_SECRET`: Any secret password.
-4. **IMPORTANT**: If you get a 404, check:
-   - Did you set Root Directory to `apps/backend`?
-   - Did you add the Environment Variables?
+4. **IMPORTANT**: Neon might give you two URLs. Use the one with `?sslmode=require`.
 
-**Note:** The backend is configured to run as a serverless function. It might take a moment to wake up on first request.
+**Note:** The backend is configured to use Prisma to talk to Neon. Prisma is the "bridge" and Neon is the "storage".
