@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next/
+out/
+
+# NestJS
+dist/
+
+# Production
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.sqlite
+prisma/migrations/
+# We ignore migrations for now if they are specific to local sqlite, but normally you commit them.
+# However, user wants to deploy to Vercel later which needs Postgres.
+# Best to ignore sqlite db file but KEEP migrations if possible, but SQLite migrations differ from Postgres.
+# For simplicity, let's ignore the dev.db.
+dev.db
+dev.db-journal
+
+# Prisma
+# apps/backend/node_modules/.prisma is generated

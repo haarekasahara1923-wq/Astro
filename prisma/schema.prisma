@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../apps/backend/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  role          String         @default("USER")
+  name          String?
+  phone         String         @unique
+  email         String?        @unique
+  password      String
+  dob           DateTime?
+  tob           String?
+  pob           String?
+  wallet        Wallet?
+  reviews       Review[]
+  consultations Consultation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Astrologer {
+  id            String         @id @default(uuid())
+  role          String         @default("ASTROLOGER")
+  name          String
+  email         String         @unique
+  phone         String         @unique
+  password      String
+  expertise     String
+  languages     String
+  experience    Int
+  pricePerMin   Int
+  rating        Float          @default(0)
+  isOnline      Boolean        @default(false)
+  wallet        Wallet?
+  consultations Consultation[]
+  reviews       Review[]
+  kyc           KYC?
+  payouts       Payout[]
+  createdAt     DateTime       @default(now())
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  role      String   @default("ADMIN")
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Wallet {
+  id           String              @id @default(uuid())
+  balance      Float               @default(0)
+  userId       String?             @unique
+  astrologerId String?             @unique
+  user         User?               @relation(fields: [userId], references: [id])
+  astrologer   Astrologer?         @relation(fields: [astrologerId], references: [id])
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id        String   @id @default(uuid())
+  amount    Float
+  type      String
+  walletId  String
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Consultation {
+  id            String           @id @default(uuid())
+  userId        String
+  astrologerId  String
+  type          String
+  durationMin   Int
+  amountCharged Float
+  user          User             @relation(fields: [userId], references: [id])
+  astrologer    Astrologer       @relation(fields: [astrologerId], references: [id])
+  messages      ChatMessage[]
+  createdAt     DateTime         @default(now())
+}
+
+model ChatMessage {
+  id             String       @id @default(uuid())
+  consultationId String
+  senderRole     String
+  message        String
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Review {
+  id           String     @id @default(uuid())
+  userId       String
+  astrologerId String
+  rating       Int
+  comment      String?
+  user         User       @relation(fields: [userId], references: [id])
+  astrologer   Astrologer @relation(fields: [astrologerId], references: [id])
+  createdAt    DateTime   @default(now())
+}
+
+model PromoCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  discountPct Int
+  expiry      DateTime
+}
+
+model Payout {
+  id           String     @id @default(uuid())
+  astrologerId String
+  amount       Float
+  status       String
+  createdAt    DateTime   @default(now())
+  astrologer   Astrologer @relation(fields: [astrologerId], references: [id])
+}
+
+model KYC {
+  id           String     @id @default(uuid())
+  astrologerId String     @unique
+  documentUrl  String
+  verified     Boolean    @default(false)
+  astrologer   Astrologer @relation(fields: [astrologerId], references: [id])
+}
