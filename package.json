@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build --prefix apps/frontend",
-    "postinstall": "cd apps/backend && npx prisma generate"
+    "build": "npm run build --prefix apps/frontend"
   },
   "keywords": [],
   "author": "",
