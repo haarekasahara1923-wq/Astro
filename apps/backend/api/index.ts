@@ -4,18 +4,30 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 import express from 'express';
 
-const server = express();
+let cachedServer;
 
-const createNestServer = async (expressInstance: any) => {
-    const app = await NestFactory.create(
-        AppModule,
-        new ExpressAdapter(expressInstance),
-    );
-    app.enableCors();
-    return app.init();
+const bootstrap = async () => {
+    if (!cachedServer) {
+        const expressApp = express();
+        const adapter = new ExpressAdapter(expressApp);
+        const nestApp = await NestFactory.create(AppModule, adapter);
+        nestApp.enableCors();
+        await nestApp.init();
+        cachedServer = expressApp;
+    }
+    return cachedServer;
 };
 
-export default async (req: any, res: any) => {
-    await createNestServer(server);
-    server(req, res);
+export default async (req, res) => {
+    try {
+        const server = await bootstrap();
+        return server(req, res);
+    } catch (error) {
+        console.error('BOOTSTRAP_ERROR:', error);
+        res.status(500).json({
+            error: 'Backend Bootstrap Failed',
+            message: error.message,
+            stack: error.stack
+        });
+    }
 };
