@@ -2,10 +2,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
-
 import express from 'express';
 
-// @ts-ignore
 const server = express();
 
 const createNestServer = async (expressInstance: any) => {
@@ -13,18 +11,11 @@ const createNestServer = async (expressInstance: any) => {
         AppModule,
         new ExpressAdapter(expressInstance),
     );
-    app.enableCors({
-        origin: '*',
-        credentials: true,
-    });
-    await app.init();
+    app.enableCors();
+    return app.init();
 };
 
-export default async function handler(req: any, res: any) {
-    if (!server.listeners('request').length) {
-        await createNestServer(server);
-    }
-    (server as any)(req, res);
-}
-
-
+export default async (req: any, res: any) => {
+    await createNestServer(server);
+    server(req, res);
+};
