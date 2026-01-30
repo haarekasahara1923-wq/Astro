@@ -16,6 +16,9 @@ export default function Home() {
           <Link href="/astrologers" className="hover:text-accent transition-colors">
             Our Astrologers
           </Link>
+          <Link href="/plans" className="hover:text-accent transition-colors">
+            Plans
+          </Link>
           <Link href="/horoscope" className="hover:text-accent transition-colors">
             Horoscope
           </Link>
@@ -35,7 +38,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex-1 flex flex-col justify-center items-center text-center px-4 py-20 relative overflow-hidden">
-        
+
         {/* Abstract Background Elements */}
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl -z-10 animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl -z-10" />
@@ -45,14 +48,14 @@ export default function Home() {
             <Star className="w-3 h-3 fill-accent" />
             Vedic Wisdom for Modern Life
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
             Discover Your <br />
             <span className="bg-gradient-to-r from-accent via-secondary to-primary bg-clip-text text-transparent">
               Cosmic Path
             </span>
           </h1>
-          
+
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Connect with verified Vedic astrologers for instant guidance on love, career, and personal growth through chat, voice, or video.
           </p>
