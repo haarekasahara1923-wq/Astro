@@ -18,7 +18,7 @@ export class PaymentService {
     ) {
         this.razorpay = new Razorpay({
             key_id: this.configService.get('RAZORPAY_KEY_ID'),
-            key_secret: this.configService.get('RAZORPAY_SECRET_KEY'),
+            key_secret: this.configService.get('RAZORPAY_KEY_SECRET'),
         });
 
         const clientId = this.configService.get('PAYPAL_CLIENT_ID');
@@ -44,7 +44,7 @@ export class PaymentService {
 
     async verifyRazorpayPayment(paymentId: string, orderId: string, signature: string, userId: string, amount: number) {
         const crypto = require('crypto');
-        const secret = this.configService.get('RAZORPAY_SECRET_KEY');
+        const secret = this.configService.get('RAZORPAY_KEY_SECRET');
         const generated_signature = crypto
             .createHmac('sha256', secret)
             .update(orderId + '|' + paymentId)
