@@ -1,20 +1,22 @@
 // @ts-nocheck
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 
-let cachedServer;
+let cachedApp;
 
-const bootstrap = async () => {
-    if (!cachedServer) {
-        const app = await NestFactory.create(AppModule);
+async function bootstrap() {
+    if (!cachedApp) {
+        const app = await NestFactory.create(AppModule, new ExpressAdapter());
         app.enableCors();
         await app.init();
-        cachedServer = app.getHttpAdapter().getInstance();
+        cachedApp = app.getHttpAdapter().getInstance();
     }
-    return cachedServer;
-};
+    return cachedApp;
+}
 
 export default async (req, res) => {
-    const server = await bootstrap();
-    return server(req, res);
+    const app = await bootstrap();
+    // Ensure the app instance is called correctly as a function
+    return app(req, res);
 };
