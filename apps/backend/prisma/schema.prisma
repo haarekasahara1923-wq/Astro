@@ -9,20 +9,25 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  role          String         @default("USER")
-  name          String?
-  phone         String         @unique
-  email         String?        @unique
-  password      String
-  dob           DateTime?
-  tob           String?
-  pob           String?
-  wallet        Wallet?
-  reviews       Review[]
-  consultations Consultation[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                   String         @id @default(uuid())
+  role                 String         @default("USER")
+  name                 String?
+  phone                String         @unique
+  email                String?        @unique
+  password             String
+  dob                  DateTime?
+  tob                  String?
+  pob                  String?
+  country              String         @default("India")
+  currency             String         @default("INR")
+  isNewUser            Boolean        @default(true)
+  freeConsultationUsed Boolean        @default(false)
+  plan                 String         @default("FREE") // FREE, BASIC, PREMIUM
+  wallet               Wallet?
+  reviews              Review[]
+  consultations        Consultation[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 }
 
 model Astrologer {
@@ -65,12 +70,18 @@ model Wallet {
 }
 
 model WalletTransaction {
-  id        String   @id @default(uuid())
-  amount    Float
-  type      String
-  walletId  String
-  wallet    Wallet   @relation(fields: [walletId], references: [id])
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  amount      Float
+  currency    String   @default("INR")
+  type        String // CREDIT, DEBIT
+  status      String   @default("COMPLETED") // PENDING, COMPLETED, FAILED
+  provider    String? // RAZORPAY, PAYPAL
+  paymentId   String? // Payment Gateway ID
+  orderId     String? // Payment Gateway Order ID
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  description String?
+  createdAt   DateTime @default(now())
 }
 
 model Consultation {

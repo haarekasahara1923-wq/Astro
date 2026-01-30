@@ -17,6 +17,9 @@ interface Astrologer {
 export default function Astrologers() {
     const [astrologers, setAstrologers] = useState<Astrologer[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isInternational, setIsInternational] = useState(false);
+    const [isNewUser, setIsNewUser] = useState(true);
+    const [userBalance, setUserBalance] = useState(0);
 
     // Mock data for initial render if backend is empty
     const mockAstrologers: Astrologer[] = [
@@ -72,7 +75,34 @@ export default function Astrologers() {
             }
         };
         fetchAstrologers();
+
+        // Fetch user data (mock for now)
+        const checkUserStatus = async () => {
+            // In real app: const res = await fetch('/api/auth/me');
+            // For demo:
+            setIsInternational(false);
+            setIsNewUser(true);
+            setUserBalance(0);
+        };
+        checkUserStatus();
     }, []);
+
+    const handleChatStart = async (astro: Astrologer) => {
+        if (isNewUser) {
+            alert(`Starting your free chat session with ${astro.name} for 5 minutes.`);
+            // Redirect to chat page with free trial flag
+            return;
+        }
+
+        if (userBalance < astro.pricePerMin) {
+            alert("Insufficient balance. Please recharge your wallet to start a consultation.");
+            window.location.href = "/wallet";
+            return;
+        }
+
+        alert(`Starting paid chat with ${astro.name} at ${isInternational ? '$' + (astro.pricePerMin / 10) : '₹' + astro.pricePerMin}/min.`);
+    };
+
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -134,12 +164,21 @@ export default function Astrologers() {
                                 <div className="flex items-center justify-between pt-4 border-t border-white/10">
                                     <div>
                                         <p className="text-xs text-gray-400">Rate</p>
-                                        <p className="font-bold text-accent">₹{astro.pricePerMin}/min</p>
+                                        <p className="font-bold text-accent">
+                                            {isInternational ? `$${(astro.pricePerMin / 10).toFixed(0)}` : `₹${astro.pricePerMin}`}/min
+                                        </p>
+                                        {isNewUser && (
+                                            <p className="text-[10px] text-green-500 font-bold uppercase mt-1">First 3m FREE</p>
+                                        )}
                                     </div>
-                                    <button className="px-6 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold hover:opacity-90 transition-opacity">
+                                    <button
+                                        onClick={() => handleChatStart(astro)}
+                                        className="px-6 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold hover:opacity-90 transition-opacity"
+                                    >
                                         Chat
                                     </button>
                                 </div>
+
                             </div>
                         ))}
                     </div>

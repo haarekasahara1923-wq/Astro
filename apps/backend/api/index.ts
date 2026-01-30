@@ -1,11 +1,14 @@
+// @ts-nocheck
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
-import * as express from 'express';
 
+import express from 'express';
+
+// @ts-ignore
 const server = express();
 
-const createNestServer = async (expressInstance) => {
+const createNestServer = async (expressInstance: any) => {
     const app = await NestFactory.create(
         AppModule,
         new ExpressAdapter(expressInstance),
@@ -17,9 +20,11 @@ const createNestServer = async (expressInstance) => {
     await app.init();
 };
 
-export default async function (req, res) {
+export default async function handler(req: any, res: any) {
     if (!server.listeners('request').length) {
         await createNestServer(server);
     }
-    server(req, res);
+    (server as any)(req, res);
 }
+
+
