@@ -17,9 +17,7 @@ export default async function handler(req, res) {
         console.error('Vercel Handler Error:', err);
         res.status(500).json({
             statusCode: 500,
-            message: 'Internal Server Error',
-            error: err.message,
-            stack: err.stack
+            message: 'Internal Server Error'
         });
     }
 }
