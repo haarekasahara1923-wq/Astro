@@ -1,22 +1,18 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
-import express from 'express';
 
-let cachedServer;
+let cachedApp;
 
 export default async function handler(req, res) {
     try {
-        if (!cachedServer) {
-            const expressApp = express();
-            const adapter = new ExpressAdapter(expressApp);
-            const app = await NestFactory.create(AppModule, adapter);
+        if (!cachedApp) {
+            const app = await NestFactory.create(AppModule);
             app.enableCors();
             await app.init();
-            cachedServer = expressApp;
+            cachedApp = app.getHttpAdapter().getInstance();
         }
-        return cachedServer(req, res);
+        return cachedApp(req, res);
     } catch (err) {
         console.error('Vercel Handler Error:', err);
         res.status(500).json({
