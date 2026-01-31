@@ -8,6 +8,8 @@ import { AstrologerModule } from './astrologer/astrologer.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { ConsultationModule } from './consultation/consultation.module';
+import { HoroscopeModule } from './horoscope/horoscope.module';
+import { KundaliModule } from './kundali/kundali.module';
 
 @Module({
   imports: [
@@ -17,7 +19,9 @@ import { ConsultationModule } from './consultation/consultation.module';
     AstrologerModule,
     WalletModule,
     PaymentModule,
-    ConsultationModule
+    ConsultationModule,
+    HoroscopeModule,
+    KundaliModule
   ],
   controllers: [AppController],
   providers: [AppService],
