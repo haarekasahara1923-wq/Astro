@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Body, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Param, Body, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { AstrologerService } from './astrologer.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -55,6 +55,14 @@ export class AstrologerController {
     @Get()
     findAll() {
         return this.astrologerService.findAll();
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post(':id/reviews')
+    addReview(@Request() req, @Param('id') id: string, @Body() body: { rating: number, comment: string }) {
+        // Basic validation
+        const rating = Math.min(5, Math.max(1, body.rating));
+        return this.astrologerService.addReview(id, req.user.userId, rating, body.comment);
     }
 
     @Get(':id')

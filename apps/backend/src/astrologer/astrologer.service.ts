@@ -118,4 +118,30 @@ export class AstrologerService {
             data: { isBlocked }
         });
     }
+
+    async addReview(astrologerId: string, userId: string, rating: number, comment: string) {
+        // 1. Create Review
+        await this.prisma.review.create({
+            data: {
+                astrologerId,
+                userId,
+                rating,
+                comment
+            }
+        });
+
+        // 2. Recalculate Average Rating
+        const aggregations = await this.prisma.review.aggregate({
+            _avg: { rating: true },
+            where: { astrologerId }
+        });
+
+        const newRating = aggregations._avg.rating || 2.0; // Default to 2.0 if something goes wrong, though aggregate should work
+
+        // 3. Update Astrologer
+        return this.prisma.astrologer.update({
+            where: { id: astrologerId },
+            data: { rating: newRating }
+        });
+    }
 }
