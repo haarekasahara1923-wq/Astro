@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-interface RashiData {
+export interface RashiData {
     name: string;
     nameHindi: string;
     symbol: string;

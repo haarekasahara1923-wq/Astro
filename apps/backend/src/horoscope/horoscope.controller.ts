@@ -1,12 +1,12 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { HoroscopeService } from './horoscope.service';
+import { HoroscopeService, RashiData } from './horoscope.service';
 
 @Controller('api/horoscope')
 export class HoroscopeController {
     constructor(private readonly horoscopeService: HoroscopeService) { }
 
     @Get('daily')
-    async getDailyHoroscope() {
+    async getDailyHoroscope(): Promise<RashiData[]> {
         return this.horoscopeService.getDailyHoroscope();
     }
 

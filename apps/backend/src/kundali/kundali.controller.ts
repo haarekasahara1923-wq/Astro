@@ -1,5 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { KundaliService } from './kundali.service';
+import { KundaliService, KundaliResult } from './kundali.service';
 
 @Controller('api/kundali')
 export class KundaliController {
@@ -11,7 +11,7 @@ export class KundaliController {
         dateOfBirth: string;
         timeOfBirth: string;
         placeOfBirth: string;
-    }) {
+    }): Promise<KundaliResult> {
         return this.kundaliService.generateKundali(data);
     }
 

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-interface BirthDetails {
+export interface BirthDetails {
     name: string;
     dateOfBirth: string;
     timeOfBirth: string;
     placeOfBirth: string;
 }
 
-interface KundaliResult {
+export interface KundaliResult {
     name: string;
     dateOfBirth: string;
     timeOfBirth: string;
