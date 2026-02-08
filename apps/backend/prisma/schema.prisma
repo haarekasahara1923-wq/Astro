@@ -28,6 +28,7 @@ model User {
   wallet               Wallet?
   reviews              Review[]
   consultations        Consultation[]
+  orders               Order[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 }
@@ -63,7 +64,7 @@ model Astrologer {
   pricePerMin   Int            @default(0) // Approved Rate (Public)
   isApproved    Boolean        @default(false) // Admin approval status
   
-  rating        Float          @default(0)
+  rating        Float          @default(2.0)
   isOnline      Boolean        @default(false)
   isBlocked     Boolean        @default(false)
   
@@ -163,4 +164,46 @@ model KYC {
   documentUrl  String
   verified     Boolean    @default(false)
   astrologer   Astrologer @relation(fields: [astrologerId], references: [id])
+}
+
+// --- E-Commerce (Cosmic Gems) Models ---
+
+model Product {
+  id              String      @id @default(uuid())
+  name            String
+  description     String
+  price           Float
+  salePrice       Float?      // Discounted Sell Price
+  images          String[]    // Array of image 3 URLs
+  category        String      // Gemstone, Yantra, etc.
+  stock           Int         @default(0)
+  variants        Json?       // e.g. [{ type: "Size", options: ["S", "M"] }]
+  isAvailable     Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  totalAmount     Float
+  status          String      @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
+  paymentId       String?
+  shippingAddress Json
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   // Price at purchase time
+  variant   String? // e.g. "Color: Red, Size: M"
 }

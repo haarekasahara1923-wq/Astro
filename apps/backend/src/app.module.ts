@@ -10,6 +10,7 @@ import { PaymentModule } from './payment/payment.module';
 import { ConsultationModule } from './consultation/consultation.module';
 import { HoroscopeModule } from './horoscope/horoscope.module';
 import { KundaliModule } from './kundali/kundali.module';
+import { ShopModule } from './shop/shop.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { KundaliModule } from './kundali/kundali.module';
     PaymentModule,
     ConsultationModule,
     HoroscopeModule,
-    KundaliModule
+    KundaliModule,
+    ShopModule
   ],
   controllers: [AppController],
   providers: [AppService],
