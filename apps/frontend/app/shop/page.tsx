@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingBag, Star, Search, Filter, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
 
 interface Product {
     id: string;
@@ -15,6 +16,7 @@ interface Product {
 }
 
 export default function Shop() {
+    const { getTotalItems } = useCart();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [category, setCategory] = useState("All");
@@ -63,10 +65,14 @@ export default function Shop() {
                     <Link href="/shop" className="text-amber-400">Shop</Link>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <ShoppingBag className="w-6 h-6 text-gray-200 hover:text-amber-400 cursor-pointer transition-colors" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center font-bold">0</span>
-                    </div>
+                    <Link href="/checkout" className="relative group">
+                        <ShoppingBag className="w-6 h-6 text-gray-200 group-hover:text-amber-400 cursor-pointer transition-colors" />
+                        {getTotalItems() > 0 && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center font-bold">
+                                {getTotalItems()}
+                            </span>
+                        )}
+                    </Link>
                 </div>
             </header>
 
@@ -93,8 +99,8 @@ export default function Shop() {
                             key={cat}
                             onClick={() => setCategory(cat)}
                             className={`px-6 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap ${category === cat
-                                    ? "bg-amber-500 border-amber-500 text-black"
-                                    : "border-white/10 hover:border-amber-500/50 hover:bg-white/5"
+                                ? "bg-amber-500 border-amber-500 text-black"
+                                : "border-white/10 hover:border-amber-500/50 hover:bg-white/5"
                                 }`}
                         >
                             {cat}
