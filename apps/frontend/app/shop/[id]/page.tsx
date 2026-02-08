@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart, Heart, ArrowLeft, Star, Phone, Truck, ShieldCheck, RefreshCw, Loader2 } from "lucide-react";
 
 interface Product {
@@ -19,6 +19,7 @@ interface Product {
 
 export default function ProductDetail() {
     const params = useParams();
+    const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(0);
@@ -57,9 +58,111 @@ export default function ProductDetail() {
         window.open(`https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
-    const handleBuyNow = () => {
-        // Implement Razorpay Checkout Logic here
-        alert("Redirecting to payment gateway...");
+    const handleBuyNow = async () => {
+        if (!product) return;
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.push("/login");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            // 1. Create Order on Backend
+            const currentPrice = product.salePrice || product.price;
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/payment/create-order`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    amount: currentPrice,
+                    currency: "INR",
+                    receipt: `product_${product.id}`
+                })
+            });
+
+            if (!res.ok) {
+                alert("Failed to initiate payment");
+                setLoading(false);
+                return;
+            }
+
+            const order = await res.json();
+
+            // 2. Open Razorpay
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                name: "Cosmic Gems",
+                description: `Purchase: ${product.name}`,
+                order_id: order.id,
+                handler: async function (response: any) {
+                    // 3. Verify Payment
+                    const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/payment/verify`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+
+                    if (verifyRes.ok) {
+                        alert("Payment Successful! Your order has been placed.");
+                        await createShopOrder(token, currentPrice);
+                        router.push("/shop");
+                    } else {
+                        alert("Payment verification failed");
+                    }
+                },
+                prefill: {
+                    // name: user.name, // If we had user context
+                    // email: user.email,
+                    // contact: user.phone
+                },
+                theme: {
+                    color: "#F59E0B"
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
+            setLoading(false);
+
+        } catch (error) {
+            console.error("Payment Error", error);
+            setLoading(false);
+            alert("Something went wrong with payment");
+        }
+    };
+
+    const createShopOrder = async (token: string, amount: number) => {
+        if (!product) return;
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/shop/orders`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    items: [{
+                        productId: product.id,
+                        quantity: 1,
+                        variant: selectedVariant
+                    }],
+                    shippingAddress: { address: "User Address from Profile" }
+                })
+            });
+        } catch (e) { console.error("Failed to create shop order record", e); }
     };
 
     if (loading) {
@@ -163,8 +266,8 @@ export default function ProductDetail() {
                                         key={opt}
                                         onClick={() => setSelectedVariant(opt)}
                                         className={`px-6 py-2 rounded-lg border transition-all font-medium ${selectedVariant === opt
-                                                ? "bg-white text-black border-white"
-                                                : "bg-transparent border-white/20 hover:border-white/50 text-gray-300"
+                                            ? "bg-white text-black border-white"
+                                            : "bg-transparent border-white/20 hover:border-white/50 text-gray-300"
                                             }`}
                                     >
                                         {opt}
@@ -188,7 +291,7 @@ export default function ProductDetail() {
                             className="bg-gradient-to-r from-amber-400 to-orange-600 text-black py-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] shadow-lg shadow-amber-900/20"
                         >
                             <ShoppingCart className="w-5 h-5" />
-                            Buy Now
+                            Grab Now
                         </button>
                     </div>
 

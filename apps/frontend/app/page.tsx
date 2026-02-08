@@ -25,6 +25,9 @@ export default function Home() {
           <Link href="/kundali" className="hover:text-amber-400 transition-colors">
             Free Kundali
           </Link>
+          <Link href="/shop" className="hover:text-amber-400 transition-colors text-amber-300 font-bold border border-amber-500/30 px-3 py-1 rounded-full bg-amber-500/10">
+            Cosmic Gems
+          </Link>
         </nav>
         <div className="flex items-center gap-4">
           <Link href="/login" className="px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 transition-colors text-sm">
