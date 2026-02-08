@@ -9,10 +9,11 @@ export class AstrologerController {
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     async getProfile(@Request() req) {
+        // console.log("User in request:", req.user); // Debugging
         if (req.user.role !== 'ASTROLOGER') {
             throw new ForbiddenException('Only astrologers can access their profile');
         }
-        return this.astrologerService.getProfile(req.user.id);
+        return this.astrologerService.getProfile(req.user.userId);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -21,7 +22,7 @@ export class AstrologerController {
         if (req.user.role !== 'ASTROLOGER') {
             throw new ForbiddenException('Only astrologers can update their profile');
         }
-        return this.astrologerService.updateProfile(req.user.id, data);
+        return this.astrologerService.updateProfile(req.user.userId, data);
     }
 
     @UseGuards(JwtAuthGuard)
