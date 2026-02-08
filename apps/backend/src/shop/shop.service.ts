@@ -79,7 +79,12 @@ export class ShopService {
         let totalAmount = 0;
 
         // Calculate total and prepare items
-        const orderItemsData = [];
+        const orderItemsData: Array<{
+            productId: string;
+            quantity: number;
+            price: number;
+            variant?: string;
+        }> = [];
         for (const item of items) {
             const product = await this.prisma.product.findUnique({ where: { id: item.productId } });
             if (!product) throw new NotFoundException(`Product ${item.productId} not found`);
