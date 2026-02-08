@@ -58,10 +58,27 @@ export class AuthService {
     }
 
     async login(email: string, password: string) {
-        // Try finding user
+        // 0. Check for Hardcoded Admin Credentials first (from env)
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+
+        if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+            return {
+                access_token: this.jwtService.sign({ sub: 'admin-001', email: adminEmail, role: 'ADMIN' }),
+                user: {
+                    id: 'admin-001',
+                    name: 'Super Admin',
+                    role: 'ADMIN',
+                    email: adminEmail,
+                    phone: '0000000000'
+                }
+            };
+        }
+
+        // 1. Try finding user
         let entity: any = await this.prisma.user.findUnique({ where: { email } });
 
-        // If not user, try astrologer
+        // 2. If not user, try astrologer
         if (!entity) {
             entity = await this.prisma.astrologer.findUnique({ where: { email } });
         }
@@ -70,6 +87,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
+        // 3. Verify Password
         const isPasswordValid = await bcrypt.compare(password, entity.password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid credentials');
