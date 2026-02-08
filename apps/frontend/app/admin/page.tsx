@@ -244,45 +244,61 @@ export default function AdminDashboard() {
         } catch (error) { console.error("Failed to delete", error); }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Aggressive compression to fit Vercel's 4.5MB limit
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+            try {
+                // Show uploading state
+                const newImages = [...productForm.images];
+                while (newImages.length <= index) newImages.push("");
+                newImages[index] = "uploading...";
+                setProductForm({ ...productForm, images: newImages });
 
-                    // Resize to max 400px width (smaller for Vercel limits)
-                    const maxWidth = 400;
-                    const scale = Math.min(1, maxWidth / img.width);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const base64 = event.target?.result as string;
 
-                    ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    try {
+                        const token = localStorage.getItem("token");
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-                    // Convert to base64 with heavy compression (quality: 0.5)
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                        // Upload to Cloudinary via backend
+                        const res = await fetch(`${apiUrl}/upload/image`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ image: base64 })
+                        });
 
-                    // Check size (base64 ~1.37x original size)
-                    const sizeInKB = (compressedBase64.length * 0.75) / 1024;
-                    console.log(`Image ${index + 1} compressed to ${sizeInKB.toFixed(2)}KB`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            console.log(`Image ${index + 1} uploaded to Cloudinary:`, data.url);
 
-                    if (sizeInKB > 500) {
-                        alert(`Image is still too large (${sizeInKB.toFixed(0)}KB). Please use a smaller image or lower resolution.`);
-                        return;
+                            const updatedImages = [...productForm.images];
+                            updatedImages[index] = data.url;
+                            setProductForm({ ...productForm, images: updatedImages });
+                        } else {
+                            alert(`Failed to upload image ${index + 1}`);
+                            const updatedImages = [...productForm.images];
+                            updatedImages[index] = "";
+                            setProductForm({ ...productForm, images: updatedImages });
+                        }
+                    } catch (error) {
+                        console.error("Upload error:", error);
+                        alert("Image upload failed");
+                        const updatedImages = [...productForm.images];
+                        updatedImages[index] = "";
+                        setProductForm({ ...productForm, images: updatedImages });
                     }
-
-                    const newImages = [...productForm.images];
-                    while (newImages.length <= index) newImages.push("");
-                    newImages[index] = compressedBase64;
-                    setProductForm({ ...productForm, images: newImages });
                 };
-                img.src = event.target?.result as string;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error("Image processing error:", error);
+                alert("Failed to process image");
+            }
         }
     };
 

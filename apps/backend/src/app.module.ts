@@ -11,6 +11,7 @@ import { ConsultationModule } from './consultation/consultation.module';
 import { HoroscopeModule } from './horoscope/horoscope.module';
 import { KundaliModule } from './kundali/kundali.module';
 import { ShopModule } from './shop/shop.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -23,9 +24,11 @@ import { ShopModule } from './shop/shop.module';
     ConsultationModule,
     HoroscopeModule,
     KundaliModule,
-    ShopModule
+    ShopModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule { }
+
