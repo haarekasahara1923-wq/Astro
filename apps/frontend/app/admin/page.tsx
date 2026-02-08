@@ -226,14 +226,31 @@ export default function AdminDashboard() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Compress image to reduce size
             const reader = new FileReader();
-            reader.onloadend = () => {
-                const newImages = [...productForm.images];
-                newImages[index] = reader.result as string;
-                // clean undefined/empty holes if any
-                while (newImages.length <= index) newImages.push("");
-                newImages[index] = reader.result as string;
-                setProductForm({ ...productForm, images: newImages });
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Resize to max 800px width while maintaining aspect ratio
+                    const maxWidth = 800;
+                    const scale = Math.min(1, maxWidth / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+
+                    ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Convert to base64 with compression (quality: 0.7)
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    const newImages = [...productForm.images];
+                    while (newImages.length <= index) newImages.push("");
+                    newImages[index] = compressedBase64;
+                    setProductForm({ ...productForm, images: newImages });
+                };
+                img.src = event.target?.result as string;
             };
             reader.readAsDataURL(file);
         }
@@ -485,8 +502,8 @@ export default function AdminDashboard() {
                                         <label className="text-sm text-gray-400">Stock</label>
                                         <input
                                             type="number"
-                                            value={productForm.stock}
-                                            onChange={e => setProductForm({ ...productForm, stock: parseInt(e.target.value) })}
+                                            value={productForm.stock || ""}
+                                            onChange={e => setProductForm({ ...productForm, stock: parseInt(e.target.value) || 0 })}
                                             className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 mt-1 focus:border-amber-500 outline-none"
                                         />
                                     </div>
@@ -494,8 +511,9 @@ export default function AdminDashboard() {
                                         <label className="text-sm text-gray-400">Regular Price (₹)</label>
                                         <input
                                             type="number"
-                                            value={productForm.price}
-                                            onChange={e => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
+                                            step="0.01"
+                                            value={productForm.price || ""}
+                                            onChange={e => setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })}
                                             className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 mt-1 focus:border-amber-500 outline-none"
                                             required
                                         />
@@ -504,8 +522,9 @@ export default function AdminDashboard() {
                                         <label className="text-sm text-gray-400">Sale Price (₹)</label>
                                         <input
                                             type="number"
-                                            value={productForm.salePrice}
-                                            onChange={e => setProductForm({ ...productForm, salePrice: parseFloat(e.target.value) })}
+                                            step="0.01"
+                                            value={productForm.salePrice || ""}
+                                            onChange={e => setProductForm({ ...productForm, salePrice: parseFloat(e.target.value) || 0 })}
                                             className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 mt-1 focus:border-amber-500 outline-none"
                                         />
                                     </div>
