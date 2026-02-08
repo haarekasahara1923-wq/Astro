@@ -33,14 +33,24 @@ export default function Login() {
             }
 
             const data = await res.json();
-            // Store token (in real app usue HttpOnly cookie or secure storage)
-            localStorage.setItem("token", data.access_token);
-
-            router.push("/dashboard");
+            handleLoginSuccess(data);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleLoginSuccess = (data: any) => {
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user)); // Store user info
+
+        if (data.user.role === 'ADMIN') {
+            router.push("/admin");
+        } else if (data.user.role === 'ASTROLOGER') {
+            router.push("/astrologer/dashboard");
+        } else {
+            router.push("/dashboard");
         }
     };
 

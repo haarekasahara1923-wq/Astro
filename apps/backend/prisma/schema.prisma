@@ -34,16 +34,37 @@ model User {
 model Astrologer {
   id            String         @id @default(uuid())
   role          String         @default("ASTROLOGER")
-  name          String
+  
+  // Login Details
   email         String         @unique
   phone         String         @unique
   password      String
-  expertise     String
-  languages     String
-  experience    Int
-  pricePerMin   Int
+  
+  // Identity & Contact (Private/Admin Only)
+  originalName  String?        // Real Name
+  name          String         // Display Name (Public)
+  isRealNameVisible Boolean    @default(false)
+  
+  age           Int?
+  address       String?
+  whatsapp      String?
+  
+  // Public Profile
+  profileImage  String?
+  bio           String?        // Short bio
+  expertise     String?        // e.g. "Vedic, Tarot"
+  languages     String?        // e.g. "Hindi, English"
+  experience    Int?           // Years (numeric)
+  experienceDesc String?       // Text description (Rich text/Long string)
+  
+  // Pricing & Status
+  quotedRate    Int?           // Rate requested by Astrologer
+  pricePerMin   Int            @default(0) // Approved Rate (Public)
+  isApproved    Boolean        @default(false) // Admin approval status
+  
   rating        Float          @default(0)
   isOnline      Boolean        @default(false)
+  
   wallet        Wallet?
   consultations Consultation[]
   reviews       Review[]

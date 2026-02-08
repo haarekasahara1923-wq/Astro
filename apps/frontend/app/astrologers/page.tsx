@@ -7,10 +7,12 @@ import { Moon, Star, MessageCircle, Phone, Video, Search, Filter, X, LogIn, User
 interface Astrologer {
     id: string;
     name: string;
+    profileImage?: string;
     expertise: string;
     languages: string;
     rating: number;
     experience?: number;
+    pricePerMin: number;
     isOnline: boolean;
 }
 
@@ -21,64 +23,6 @@ export default function Astrologers() {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [selectedAstrologer, setSelectedAstrologer] = useState<Astrologer | null>(null);
 
-    // Mock data for initial render if backend is empty
-    const mockAstrologers: Astrologer[] = [
-        {
-            id: "1",
-            name: "Pandit Rahul Sharma",
-            expertise: "Vedic, Numerology",
-            languages: "Hindi, English",
-            rating: 4.8,
-            experience: 15,
-            isOnline: true,
-        },
-        {
-            id: "2",
-            name: "Astro Priya",
-            expertise: "Tarot, Love",
-            languages: "English, Bengali",
-            rating: 4.9,
-            experience: 8,
-            isOnline: false,
-        },
-        {
-            id: "3",
-            name: "Guru Verma",
-            expertise: "Vastu, Career",
-            languages: "Hindi, Punjabi",
-            rating: 4.5,
-            experience: 20,
-            isOnline: true,
-        },
-        {
-            id: "4",
-            name: "Jyotishi Meera",
-            expertise: "Kundali, Matchmaking",
-            languages: "Hindi, Marathi",
-            rating: 4.7,
-            experience: 12,
-            isOnline: true,
-        },
-        {
-            id: "5",
-            name: "Acharya Deepak",
-            expertise: "Havan, Mantra",
-            languages: "Sanskrit, Hindi",
-            rating: 4.9,
-            experience: 25,
-            isOnline: false,
-        },
-        {
-            id: "6",
-            name: "Pandit Suresh Ji",
-            expertise: "Karm Kriya, Remedies",
-            languages: "Hindi, English",
-            rating: 4.6,
-            experience: 18,
-            isOnline: true,
-        },
-    ];
-
     useEffect(() => {
         // Check if user is logged in
         const token = localStorage.getItem("token");
@@ -88,19 +32,15 @@ export default function Astrologers() {
         const fetchAstrologers = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-                const res = await fetch(`${apiUrl}/astrologers`);
+                const res = await fetch(`${apiUrl}/astrologers`); // This now returns only approved astrologers
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.length > 0) {
                         setAstrologers(data);
-                    } else {
-                        setAstrologers(mockAstrologers);
                     }
-                } else {
-                    setAstrologers(mockAstrologers);
                 }
             } catch (err) {
-                setAstrologers(mockAstrologers);
+                console.error("Failed to fetch astrologers", err);
             } finally {
                 setLoading(false);
             }
@@ -114,7 +54,6 @@ export default function Astrologers() {
             setShowAuthModal(true);
             return;
         }
-        // If logged in, redirect to chat page
         window.location.href = `/chat/${astro.id}`;
     };
 
@@ -137,11 +76,11 @@ export default function Astrologers() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#0a0a0f]">
+        <div className="flex flex-col min-h-screen bg-[#0a0a0f] text-white">
             {/* Auth Modal */}
             {showAuthModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                    <div className="relative glass-panel rounded-3xl p-8 max-w-md w-full mx-4 border border-white/10">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="relative glass-panel rounded-3xl p-8 max-w-md w-full border border-white/10">
                         {/* Close Button */}
                         <button
                             onClick={() => setShowAuthModal(false)}
@@ -152,8 +91,12 @@ export default function Astrologers() {
 
                         {/* Modal Content */}
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 mx-auto mb-4 flex items-center justify-center">
-                                <Moon className="w-8 h-8 text-white" />
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                                {selectedAstrologer?.profileImage ? (
+                                    <img src={selectedAstrologer.profileImage} alt="Astro" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Moon className="w-8 h-8 text-white" />
+                                )}
                             </div>
                             <h2 className="text-2xl font-bold mb-2">Login Required</h2>
                             <p className="text-gray-400 text-sm">
@@ -245,42 +188,28 @@ export default function Astrologers() {
                     </div>
                 </div>
 
-                {/* Freemium Banner */}
-                {!isLoggedIn && (
-                    <div className="glass-panel rounded-2xl p-6 mb-8 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                                    <Star className="w-6 h-6 text-green-400" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-lg text-green-400">🎁 First Consultation FREE!</h3>
-                                    <p className="text-gray-400 text-sm">New users get 5 minutes free on chat, call & video</p>
-                                </div>
-                            </div>
-                            <Link href="/signup">
-                                <button className="px-6 py-3 rounded-full bg-green-500 text-black font-bold text-sm hover:bg-green-400 transition-colors">
-                                    Claim Now
-                                </button>
-                            </Link>
-                        </div>
-                    </div>
-                )}
-
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
                     </div>
+                ) : astrologers.length === 0 ? (
+                    <div className="text-center py-20 text-gray-400">
+                        <p>No astrologers currently available.</p>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {astrologers.map((astro) => (
-                            <div key={astro.id} className="glass-panel rounded-2xl p-6 hover:border-amber-400/30 transition-all group border border-white/5">
-                                {/* Astrologer Info */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
+                            <div key={astro.id} className="glass-panel rounded-2xl p-6 hover:border-amber-400/30 transition-all group border border-white/5 relative overflow-hidden">
+
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-4">
                                         <div className="relative">
-                                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl font-bold text-white">
-                                                {astro.name[0]}
+                                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl font-bold text-white overflow-hidden">
+                                                {astro.profileImage ? (
+                                                    <img src={astro.profileImage} alt={astro.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span>{astro.name[0]}</span>
+                                                )}
                                             </div>
                                             {astro.isOnline && (
                                                 <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0f]"></div>
@@ -288,57 +217,42 @@ export default function Astrologers() {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-lg leading-tight">{astro.name}</h3>
-                                            <div className="text-xs text-gray-400 mt-1">{astro.expertise}</div>
-                                            {astro.experience && (
-                                                <div className="text-xs text-amber-400 mt-1">{astro.experience} years exp.</div>
-                                            )}
+                                            <div className="text-xs text-gray-400 mt-1 line-clamp-1">{astro.expertise}</div>
+                                            <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{astro.languages}</div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
-                                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                                        <span className="font-bold text-sm">{astro.rating}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between mb-4 bg-black/20 rounded-lg p-3">
+                                    <div className="flex items-center gap-1.5">
+                                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                        <span className="font-bold">{astro.rating.toFixed(1)}</span>
+                                        <span className="text-xs text-gray-500">Rating</span>
                                     </div>
-                                </div>
-
-                                {/* Languages */}
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {astro.languages.split(',').map(lang => (
-                                        <span key={lang} className="text-xs px-2 py-1 rounded bg-white/5 text-gray-400">{lang.trim()}</span>
-                                    ))}
-                                </div>
-
-                                {/* Status */}
-                                <div className="flex items-center gap-2 mb-4">
-                                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${astro.isOnline ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                        {astro.isOnline ? '🟢 Online' : '⚫ Offline'}
-                                    </span>
+                                    <div className="text-right">
+                                        <div className="flex items-center gap-1 justify-end">
+                                            <span className="font-bold text-lg text-green-400">₹{astro.pricePerMin}</span>
+                                            <span className="text-xs text-gray-500">/min</span>
+                                        </div>
+                                        {astro.experience && <div className="text-xs text-amber-400">{astro.experience} Yrs Exp.</div>}
+                                    </div>
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10">
+                                <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => handleChatClick(astro)}
-                                        disabled={!astro.isOnline}
-                                        className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${astro.isOnline ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}
+                                        className="w-full py-2.5 rounded-xl border border-amber-500/50 text-amber-400 font-medium text-sm hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-2"
                                     >
-                                        <MessageCircle className="w-5 h-5" />
-                                        <span className="text-xs font-medium">Chat</span>
+                                        <MessageCircle className="w-4 h-4" />
+                                        Chat
                                     </button>
                                     <button
                                         onClick={() => handleCallClick(astro)}
-                                        disabled={!astro.isOnline}
-                                        className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${astro.isOnline ? 'bg-green-500/10 hover:bg-green-500/20 text-green-400' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}
+                                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                                     >
-                                        <Phone className="w-5 h-5" />
-                                        <span className="text-xs font-medium">Call</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleVideoClick(astro)}
-                                        disabled={!astro.isOnline}
-                                        className={`flex flex-col items-center gap-1 py-3 rounded-xl transition-all ${astro.isOnline ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-400' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}
-                                    >
-                                        <Video className="w-5 h-5" />
-                                        <span className="text-xs font-medium">Video</span>
+                                        <Phone className="w-4 h-4" />
+                                        Call
                                     </button>
                                 </div>
                             </div>
