@@ -250,7 +250,7 @@ export default function AstrologerDashboard() {
                                 <input
                                     type="number"
                                     value={formData.experience || 0}
-                                    onChange={e => setFormData({ ...formData, experience: Number(e.target.value) })}
+                                    onChange={e => setFormData({ ...formData, experience: e.target.value as any })}
                                     className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 focus:border-purple-500 outline-none"
                                 />
                             </div>
