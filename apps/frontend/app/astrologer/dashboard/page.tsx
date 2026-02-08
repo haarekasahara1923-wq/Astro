@@ -80,22 +80,35 @@ export default function AstrologerDashboard() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
+
+            // Prepare data with correct types
+            const payload = {
+                ...formData,
+                age: formData.age ? parseInt(String(formData.age), 10) : undefined,
+                quotedRate: formData.quotedRate ? parseInt(String(formData.quotedRate), 10) : undefined,
+                experience: formData.experience ? parseInt(String(formData.experience), 10) : undefined,
+            };
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/astrologers/profile`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
                 const updated = await res.json();
                 setProfile(updated);
                 setIsEditing(false);
+            } else {
+                console.error("Failed to save profile, status:", res.status);
+                alert("Failed to save profile. Please check your inputs and try again.");
             }
         } catch (error) {
             console.error("Failed to update profile", error);
+            alert("An error occurred while saving profile.");
         } finally {
             setLoading(false);
         }
