@@ -7,11 +7,15 @@ import { Moon, Star, MessageCircle, Phone, Video, Search, Filter, X, LogIn, User
 interface Astrologer {
     id: string;
     name: string;
+    originalName?: string;
+    isRealNameVisible?: boolean;
     profileImage?: string;
     expertise: string;
     languages: string;
     rating: number;
     experience?: number;
+    age?: number;
+    bio?: string;
     pricePerMin: number;
     isOnline: boolean;
 }
@@ -198,65 +202,83 @@ export default function Astrologers() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {astrologers.map((astro) => (
-                            <div key={astro.id} className="glass-panel rounded-2xl p-6 hover:border-amber-400/30 transition-all group border border-white/5 relative overflow-hidden">
+                        {astrologers.map((astro) => {
+                            const displayName = (astro.isRealNameVisible || !astro.name?.trim())
+                                ? (astro.originalName || "Astrologer")
+                                : astro.name;
 
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl font-bold text-white overflow-hidden">
-                                                {astro.profileImage ? (
-                                                    <img src={astro.profileImage} alt={astro.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span>{astro.name[0]}</span>
+                            return (
+                                <div key={astro.id} className="glass-panel rounded-2xl p-6 hover:border-amber-400/30 transition-all group border border-white/5 relative overflow-hidden">
+
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-4 w-full">
+                                            <div className="relative shrink-0">
+                                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl font-bold text-white overflow-hidden border-2 border-white/10">
+                                                    {astro.profileImage ? (
+                                                        <img src={astro.profileImage} alt={displayName} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span>{displayName[0] || "A"}</span>
+                                                    )}
+                                                </div>
+                                                {astro.isOnline && (
+                                                    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0f]"></div>
                                                 )}
                                             </div>
-                                            {astro.isOnline && (
-                                                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-[#0a0a0f]"></div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg leading-tight">{astro.name}</h3>
-                                            <div className="text-xs text-gray-400 mt-1 line-clamp-1">{astro.expertise}</div>
-                                            <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{astro.languages}</div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-lg leading-tight truncate pr-2">
+                                                    {displayName}
+                                                </h3>
+                                                <div className="text-xs text-gray-400 mt-1 line-clamp-1">{astro.expertise}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">{astro.languages}</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex items-center justify-between mb-4 bg-black/20 rounded-lg p-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                                        <span className="font-bold">{astro.rating.toFixed(1)}</span>
-                                        <span className="text-xs text-gray-500">Rating</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="flex items-center gap-1 justify-end">
-                                            <span className="font-bold text-lg text-green-400">₹{astro.pricePerMin}</span>
-                                            <span className="text-xs text-gray-500">/min</span>
+                                    {/* Bio Section */}
+                                    {astro.bio && (
+                                        <div className="mb-4 text-xs text-gray-300 line-clamp-2 italic bg-white/5 p-2 rounded-lg border border-white/5">
+                                            "{astro.bio}"
                                         </div>
-                                        {astro.experience && <div className="text-xs text-amber-400">{astro.experience} Yrs Exp.</div>}
+                                    )}
+
+                                    <div className="flex items-center justify-between mb-4 bg-black/20 rounded-lg p-3">
+                                        <div className="flex items-center gap-1.5">
+                                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                            <span className="font-bold">{astro.rating.toFixed(1)}</span>
+                                            <span className="text-xs text-gray-500">Rating</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="flex items-center gap-1 justify-end">
+                                                <span className="font-bold text-lg text-green-400">₹{astro.pricePerMin}</span>
+                                                <span className="text-xs text-gray-500">/min</span>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-0.5">
+                                                {astro.experience ? <div className="text-xs text-amber-400">{astro.experience} Yrs Exp.</div> : null}
+                                                {astro.age ? <div className="text-xs text-gray-400">Age: {astro.age}</div> : null}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => handleChatClick(astro)}
+                                            className="w-full py-2.5 rounded-xl border border-amber-500/50 text-amber-400 font-medium text-sm hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <MessageCircle className="w-4 h-4" />
+                                            Chat
+                                        </button>
+                                        <button
+                                            onClick={() => handleCallClick(astro)}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                                        >
+                                            <Phone className="w-4 h-4" />
+                                            Call
+                                        </button>
                                     </div>
                                 </div>
-
-                                {/* Action Buttons */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => handleChatClick(astro)}
-                                        className="w-full py-2.5 rounded-xl border border-amber-500/50 text-amber-400 font-medium text-sm hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <MessageCircle className="w-4 h-4" />
-                                        Chat
-                                    </button>
-                                    <button
-                                        onClick={() => handleCallClick(astro)}
-                                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                        Call
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </main>
