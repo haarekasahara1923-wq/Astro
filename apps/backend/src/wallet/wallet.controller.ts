@@ -11,4 +11,12 @@ export class WalletController {
     async getWallet(@Request() req) {
         return this.walletService.getWallet(req.user.userId, req.user.role);
     }
+    @UseGuards(JwtAuthGuard)
+    @Get('admin/all')
+    async getAllWalletsForAdmin(@Request() req) {
+        if (req.user.role !== 'ADMIN') {
+            throw new Error('Unauthorized');
+        }
+        return this.walletService.getAllWalletsForAdmin();
+    }
 }

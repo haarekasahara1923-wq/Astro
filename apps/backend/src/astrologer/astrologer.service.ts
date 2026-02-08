@@ -107,4 +107,12 @@ export class AstrologerService {
             }
         });
     }
+
+    // Admin: Block/Unblock Astrologer
+    async toggleBlockStatus(id: string, isBlocked: boolean) {
+        return this.prisma.astrologer.update({
+            where: { id },
+            data: { isBlocked }
+        });
+    }
 }

@@ -83,4 +83,29 @@ export class WalletService {
             return updatedWallet;
         });
     }
+    async getAllWalletsForAdmin() {
+        // Fetch User Wallets
+        const userWallets = await this.prisma.wallet.findMany({
+            where: {
+                userId: { not: null }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        isBlocked: true
+                    }
+                },
+                transactions: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 5
+                }
+            }
+        });
+
+        return userWallets;
+    }
 }

@@ -24,6 +24,7 @@ model User {
   isNewUser            Boolean        @default(true)
   freeConsultationUsed Boolean        @default(false)
   plan                 String         @default("FREE") // FREE, BASIC, PREMIUM
+  isBlocked            Boolean        @default(false)
   wallet               Wallet?
   reviews              Review[]
   consultations        Consultation[]
@@ -64,6 +65,7 @@ model Astrologer {
   
   rating        Float          @default(0)
   isOnline      Boolean        @default(false)
+  isBlocked     Boolean        @default(false)
   
   wallet        Wallet?
   consultations Consultation[]

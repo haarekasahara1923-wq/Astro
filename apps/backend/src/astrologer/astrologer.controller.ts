@@ -42,6 +42,15 @@ export class AstrologerController {
         return this.astrologerService.approveAstrologer(id, body.rate);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Put('admin/block/:id')
+    async toggleBlockStatus(@Request() req, @Param('id') id: string, @Body() body: { isBlocked: boolean }) {
+        if (req.user.role !== 'ADMIN') {
+            throw new ForbiddenException('Only admins can block astrologers');
+        }
+        return this.astrologerService.toggleBlockStatus(id, body.isBlocked);
+    }
+
     @Get()
     findAll() {
         return this.astrologerService.findAll();
