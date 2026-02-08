@@ -106,7 +106,14 @@ export default function AdminDashboard() {
                 setUsers(mappedUsers);
             }
 
-            if (productRes.ok) setProducts(await productRes.json());
+            if (productRes.ok) {
+                const productsData = await productRes.json();
+                console.log("Loaded products from API:", productsData);
+                setProducts(productsData);
+            } else {
+                console.error("Failed to fetch products. Status:", productRes.status);
+            }
+
             if (shopStatsRes.ok) {
                 const stats = await shopStatsRes.json();
                 setShopStats({ revenue: stats.revenue, orders: stats.totalOrders });
@@ -156,6 +163,11 @@ export default function AdminDashboard() {
         e.preventDefault();
         try {
             const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Please login to continue");
+                return;
+            }
+
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
             const method = productForm.id ? "PUT" : "POST";
             const url = productForm.id ? `${apiUrl}/shop/products/${productForm.id}` : `${apiUrl}/shop/products`;
@@ -165,14 +177,19 @@ export default function AdminDashboard() {
                 finalData.variants = [{ type: "Standard", options: ["Default"] }];
             }
 
+            console.log("Sending product data:", finalData);
+
             const res = await fetch(url, {
                 method,
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(finalData)
             });
 
+            console.log("Response status:", res.status);
+
             if (res.ok) {
                 const updated = await res.json();
+                console.log("Product saved successfully:", updated);
                 if (productForm.id) {
                     setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
                 } else {
@@ -180,8 +197,16 @@ export default function AdminDashboard() {
                 }
                 setIsProductModalOpen(false);
                 setProductForm({ name: "", description: "", price: 0, salePrice: 0, images: [], category: "Gemstone", stock: 1, isAvailable: true, variants: [] });
+                alert("Product saved successfully!");
+            } else {
+                const errorData = await res.text();
+                console.error("Failed to save product. Status:", res.status, "Error:", errorData);
+                alert(`Failed to save product: ${res.status} - ${errorData}`);
             }
-        } catch (error) { console.error("Failed to save product", error); }
+        } catch (error) {
+            console.error("Failed to save product", error);
+            alert("An error occurred while saving the product. Check console for details.");
+        }
     };
 
     const handleDeleteProduct = async (id: string) => {
