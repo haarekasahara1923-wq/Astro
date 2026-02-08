@@ -102,6 +102,11 @@ export default function AstrologerDashboard() {
         );
     }
 
+    if (!profile) {
+        // Handle case where not loading but profile is null (e.g. failed fetch not caught by 401 redirect)
+        return null;
+    }
+
     return (
         <div className="min-h-screen bg-[#0f0c29] text-white p-6">
             <div className="max-w-4xl mx-auto">
