@@ -161,10 +161,16 @@ export default function AdminDashboard() {
 
     const handleSaveProduct = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Prevent duplicate submissions
+        if ((e.target as any).disabled) return;
+        (e.target as any).disabled = true;
+
         try {
             const token = localStorage.getItem("token");
             if (!token) {
                 alert("Please login to continue");
+                (e.target as any).disabled = false;
                 return;
             }
 
@@ -175,6 +181,19 @@ export default function AdminDashboard() {
             const finalData = { ...productForm };
             if (!finalData.variants || finalData.variants.length === 0) {
                 finalData.variants = [{ type: "Standard", options: ["Default"] }];
+            }
+
+            // Validate payload size (Vercel limit is ~4.5MB per request)
+            const payloadSize = new Blob([JSON.stringify(finalData)]).size;
+            const payloadSizeKB = payloadSize / 1024;
+            const payloadSizeMB = payloadSizeKB / 1024;
+
+            console.log(`Total payload size: ${payloadSizeMB.toFixed(2)}MB`);
+
+            if (payloadSizeMB > 4) {
+                alert(`Payload too large (${payloadSizeMB.toFixed(2)}MB). Vercel limit is 4.5MB. Please use smaller/fewer images.`);
+                (e.target as any).disabled = false;
+                return;
             }
 
             console.log("Sending product data:", finalData);
@@ -206,6 +225,8 @@ export default function AdminDashboard() {
         } catch (error) {
             console.error("Failed to save product", error);
             alert("An error occurred while saving the product. Check console for details.");
+        } finally {
+            (e.target as any).disabled = false;
         }
     };
 
@@ -226,7 +247,7 @@ export default function AdminDashboard() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Compress image to reduce size
+            // Aggressive compression to fit Vercel's 4.5MB limit
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
@@ -234,16 +255,25 @@ export default function AdminDashboard() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
 
-                    // Resize to max 800px width while maintaining aspect ratio
-                    const maxWidth = 800;
+                    // Resize to max 400px width (smaller for Vercel limits)
+                    const maxWidth = 400;
                     const scale = Math.min(1, maxWidth / img.width);
                     canvas.width = img.width * scale;
                     canvas.height = img.height * scale;
 
                     ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                    // Convert to base64 with compression (quality: 0.7)
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    // Convert to base64 with heavy compression (quality: 0.5)
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+
+                    // Check size (base64 ~1.37x original size)
+                    const sizeInKB = (compressedBase64.length * 0.75) / 1024;
+                    console.log(`Image ${index + 1} compressed to ${sizeInKB.toFixed(2)}KB`);
+
+                    if (sizeInKB > 500) {
+                        alert(`Image is still too large (${sizeInKB.toFixed(0)}KB). Please use a smaller image or lower resolution.`);
+                        return;
+                    }
 
                     const newImages = [...productForm.images];
                     while (newImages.length <= index) newImages.push("");
