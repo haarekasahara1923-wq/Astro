@@ -34,6 +34,8 @@ export default function AstrologerDashboard() {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<AstrologerProfile>>({});
 
+    const [error, setError] = useState("");
+
     useEffect(() => {
         fetchProfile();
     }, []);
@@ -42,7 +44,7 @@ export default function AstrologerDashboard() {
         try {
             const token = localStorage.getItem("token");
             if (!token) {
-                router.push("/login");
+                router.push("/login"); // Client side redirect
                 return;
             }
 
@@ -59,10 +61,15 @@ export default function AstrologerDashboard() {
                     setFormData(data);
                 }
             } else {
-                if (res.status === 401 || res.status === 403) router.push("/login");
+                if (res.status === 401 || res.status === 403) {
+                    router.push("/login");
+                } else {
+                    setError("Failed to load profile. Please try again.");
+                }
             }
         } catch (error) {
             console.error("Failed to fetch profile", error);
+            setError("Network error. Please check your connection.");
         } finally {
             setLoading(false);
         }
@@ -102,9 +109,33 @@ export default function AstrologerDashboard() {
         );
     }
 
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0f0c29] text-white flex-col gap-4">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+                <p className="text-xl text-red-400">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 font-medium"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
     if (!profile) {
-        // Handle case where not loading but profile is null (e.g. failed fetch not caught by 401 redirect)
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0f0c29] text-white flex-col gap-4">
+                <p className="text-xl text-gray-400">No profile data found.</p>
+                <button
+                    onClick={() => router.push('/login')}
+                    className="px-6 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 font-medium"
+                >
+                    Back to Login
+                </button>
+            </div>
+        );
     }
 
     return (
