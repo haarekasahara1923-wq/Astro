@@ -188,8 +188,8 @@ export default function Dashboard() {
 
                             {/* Plan Badge */}
                             <div className={`inline-flex px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${user.plan === 'PREMIUM' ? 'bg-purple-500/20 border border-purple-500/30 text-purple-400' :
-                                    user.plan === 'STANDARD' ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400' :
-                                        'bg-green-500/20 border border-green-500/30 text-green-400'
+                                user.plan === 'STANDARD' ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400' :
+                                    'bg-green-500/20 border border-green-500/30 text-green-400'
                                 }`}>
                                 {user.plan} Plan
                             </div>
@@ -210,8 +210,8 @@ export default function Dashboard() {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === item.id
-                                            ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold'
-                                            : 'hover:bg-white/5 text-gray-400 hover:text-white'
+                                        ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold'
+                                        : 'hover:bg-white/5 text-gray-400 hover:text-white'
                                         }`}
                                 >
                                     <item.icon className="w-5 h-5" />
@@ -235,6 +235,13 @@ export default function Dashboard() {
                                     <span className="text-sm font-medium">Find Astrologers</span>
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-400" />
+                            </Link>
+                            <Link href="/shop" className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border border-amber-500/20 bg-amber-500/5">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-lg">🪷</span>
+                                    <span className="text-sm font-bold text-amber-300">Cosmic Gems</span>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-amber-400" />
                             </Link>
                         </div>
                     </div>
@@ -399,8 +406,8 @@ function HistorySection() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.type === 'chat' ? 'bg-amber-500/20 text-amber-400' :
-                                            item.type === 'call' ? 'bg-green-500/20 text-green-400' :
-                                                'bg-purple-500/20 text-purple-400'
+                                        item.type === 'call' ? 'bg-green-500/20 text-green-400' :
+                                            'bg-purple-500/20 text-purple-400'
                                         }`}>
                                         {item.type === 'chat' ? <MessageCircle className="w-5 h-5" /> :
                                             item.type === 'call' ? <Phone className="w-5 h-5" /> :

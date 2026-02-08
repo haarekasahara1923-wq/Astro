@@ -161,6 +161,12 @@ export default function Astrologers() {
                         </span>
                     </Link>
                 </div>
+                <Link
+                    href="/shop"
+                    className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 font-bold text-sm hover:bg-amber-500/20 transition-colors"
+                >
+                    🪷 Cosmic Gems
+                </Link>
                 <div className="flex items-center gap-4">
                     {isLoggedIn ? (
                         <Link href="/dashboard" className="px-5 py-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-black text-sm font-bold hover:opacity-90 transition-opacity">
