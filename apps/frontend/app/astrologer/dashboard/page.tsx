@@ -175,8 +175,39 @@ export default function AstrologerDashboard() {
 
                 {isEditing ? (
                     <form onSubmit={handleSave} className="space-y-6 bg-white/5 p-6 rounded-2xl border border-white/10">
-                        {/* Identity Section */}
                         <div className="grid md:grid-cols-2 gap-6">
+                            <div className="col-span-2 flex flex-col items-center justify-center mb-4">
+                                <div className="relative w-32 h-32 mb-4">
+                                    <div className="w-full h-full rounded-full bg-purple-500/20 flex items-center justify-center border-2 border-purple-500/50 overflow-hidden">
+                                        {formData.profileImage ? (
+                                            <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-12 h-12 text-purple-400" />
+                                        )}
+                                    </div>
+                                    <label htmlFor="image-upload" className="absolute bottom-0 right-0 p-2 bg-purple-600 rounded-full cursor-pointer hover:bg-purple-700 transition-colors">
+                                        <Camera className="w-4 h-4 text-white" />
+                                    </label>
+                                    <input
+                                        type="file"
+                                        id="image-upload"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    setFormData({ ...formData, profileImage: reader.result as string });
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <p className="text-gray-400 text-sm">Tap camera icon to upload photo</p>
+                            </div>
+
                             <div>
                                 <label className="block text-sm text-gray-400 mb-1">Original Name</label>
                                 <input
