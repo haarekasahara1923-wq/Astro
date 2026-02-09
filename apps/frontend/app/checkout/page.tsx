@@ -58,7 +58,7 @@ export default function Checkout() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
             // 1. Create Razorpay Order
-            const orderRes = await fetch(`${apiUrl}/payment/create-order`, {
+            const orderRes = await fetch(`${apiUrl}/payment/razorpay/order`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -97,7 +97,7 @@ export default function Checkout() {
                 },
                 handler: async function (response: any) {
                     // 3. Verify Payment
-                    const verifyRes = await fetch(`${apiUrl}/payment/verify`, {
+                    const verifyRes = await fetch(`${apiUrl}/payment/razorpay/verify`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
