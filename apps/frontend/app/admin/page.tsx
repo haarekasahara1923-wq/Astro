@@ -254,83 +254,38 @@ export default function AdminDashboard() {
                 newImages[index] = "uploading...";
                 setProductForm({ ...productForm, images: newImages });
 
-                // Compress image before upload
-                const compressedBase64 = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
+                // Direct upload to Cloudinary (bypasses backend)
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'cosmic_gems_preset'); // We'll create this
+                formData.append('cloud_name', 'dqh33zpxu');
 
-                            // Resize if too large (max 1200px)
-                            const maxSize = 1200;
-                            if (width > maxSize || height > maxSize) {
-                                if (width > height) {
-                                    height = (height / width) * maxSize;
-                                    width = maxSize;
-                                } else {
-                                    width = (width / height) * maxSize;
-                                    height = maxSize;
-                                }
-                            }
+                // Upload directly to Cloudinary
+                const cloudinaryUrl = `https://api.cloudinary.com/v1_1/dqh33zpxu/image/upload`;
 
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx?.drawImage(img, 0, 0, width, height);
-
-                            // Compress to 70% quality
-                            const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                            resolve(compressed);
-                        };
-                        img.onerror = reject;
-                        img.src = event.target?.result as string;
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
+                const res = await fetch(cloudinaryUrl, {
+                    method: 'POST',
+                    body: formData
                 });
 
-                try {
-                    const token = localStorage.getItem("token");
-                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log(`Image ${index + 1} uploaded to Cloudinary:`, data.secure_url);
 
-                    // Upload to Cloudinary via backend
-                    const res = await fetch(`${apiUrl}/upload/image`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ image: compressedBase64 })
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        console.log(`Image ${index + 1} uploaded to Cloudinary:`, data.url);
-
-                        const updatedImages = [...productForm.images];
-                        updatedImages[index] = data.url;
-                        setProductForm({ ...productForm, images: updatedImages });
-                    } else {
-                        const errorText = await res.text();
-                        console.error(`Upload failed (${res.status}):`, errorText);
-                        alert(`Failed to upload image ${index + 1}: ${res.status}`);
-                        const updatedImages = [...productForm.images];
-                        updatedImages[index] = "";
-                        setProductForm({ ...productForm, images: updatedImages });
-                    }
-                } catch (error) {
-                    console.error("Upload error:", error);
-                    alert("Image upload failed");
+                    const updatedImages = [...productForm.images];
+                    updatedImages[index] = data.secure_url;
+                    setProductForm({ ...productForm, images: updatedImages });
+                } else {
+                    const errorText = await res.text();
+                    console.error(`Upload failed (${res.status}):`, errorText);
+                    alert(`Failed to upload image ${index + 1}. Please check Cloudinary upload preset.`);
                     const updatedImages = [...productForm.images];
                     updatedImages[index] = "";
                     setProductForm({ ...productForm, images: updatedImages });
                 }
             } catch (error) {
-                console.error("Image processing error:", error);
-                alert("Failed to process image");
+                console.error("Image upload error:", error);
+                alert("Image upload failed. Please try again.");
                 const updatedImages = [...productForm.images];
                 updatedImages[index] = "";
                 setProductForm({ ...productForm, images: updatedImages });
