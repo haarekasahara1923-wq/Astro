@@ -10,6 +10,7 @@ export default function Checkout() {
     const router = useRouter();
     const { cart, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
     const [loading, setLoading] = useState(false);
+    const [isInternational, setIsInternational] = useState(false);
     const [buyerDetails, setBuyerDetails] = useState({
         name: "",
         address: "",
@@ -26,21 +27,24 @@ export default function Checkout() {
         }
     }, [cart]);
 
+    const getDisplayPrice = () => {
+        const inrPrice = getTotalPrice();
+        if (isInternational) {
+            // Approximate USD conversion (₹83 = $1)
+            return parseFloat((inrPrice / 83).toFixed(2));
+        }
+        return inrPrice;
+    };
+
     const handlePayment = async () => {
         // Validate required fields
-        if (!buyerDetails.name || !buyerDetails.address || !buyerDetails.pincode || !buyerDetails.mobile) {
-            alert("Please fill all required fields (Name, Address, Pincode, Mobile)");
+        if (!buyerDetails.name || !buyerDetails.address || !buyerDetails.mobile) {
+            alert("Please fill all required fields (Name, Address, Mobile)");
             return;
         }
 
-        // Validate pincode (6 digits)
-        if (!/^\d{6}$/.test(buyerDetails.pincode)) {
-            alert("Please enter a valid 6-digit pincode");
-            return;
-        }
-
-        // Validate mobile (10 digits)
-        if (!/^\d{10}$/.test(buyerDetails.mobile)) {
+        // Validate mobile (10 digits for India, flexible for international)
+        if (!isInternational && !/^\d{10}$/.test(buyerDetails.mobile)) {
             alert("Please enter a valid 10-digit mobile number");
             return;
         }
@@ -54,77 +58,106 @@ export default function Checkout() {
         setLoading(true);
 
         try {
-            const totalAmount = getTotalPrice();
+            const totalAmount = isInternational ? parseFloat(getDisplayPrice().toFixed(2)) : getTotalPrice();
+            const currency = isInternational ? 'USD' : 'INR';
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-            // 1. Create Razorpay Order
-            const orderRes = await fetch(`${apiUrl}/payment/razorpay/order`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    amount: totalAmount,
-                    currency: "INR",
-                    receipt: `shop_order_${Date.now()}`
-                })
-            });
+            if (isInternational) {
+                // PayPal Flow
+                const orderRes = await fetch(`${apiUrl}/payment/paypal/order`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: totalAmount,
+                        currency: 'USD'
+                    })
+                });
 
-            if (!orderRes.ok) {
-                alert("Failed to create order");
-                setLoading(false);
-                return;
-            }
-
-            const order = await orderRes.json();
-
-            // 2. Open Razorpay Checkout
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                amount: order.amount,
-                currency: order.currency,
-                name: "Cosmic Gems",
-                description: "Purchase of spiritual products",
-                order_id: order.id,
-                prefill: {
-                    name: buyerDetails.name,
-                    email: buyerDetails.email,
-                    contact: buyerDetails.mobile
-                },
-                theme: {
-                    color: "#F59E0B"
-                },
-                handler: async function (response: any) {
-                    // 3. Verify Payment
-                    const verifyRes = await fetch(`${apiUrl}/payment/razorpay/verify`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
-                        })
-                    });
-
-                    if (verifyRes.ok) {
-                        // 4. Create Shop Order
-                        await createShopOrder(token, totalAmount);
-                        alert("Payment successful! Your order has been placed.");
-                        clearCart();
-                        router.push("/shop");
-                    } else {
-                        alert("Payment verification failed");
-                    }
+                if (!orderRes.ok) {
+                    alert("Failed to create PayPal order");
+                    setLoading(false);
+                    return;
                 }
-            };
 
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
-            setLoading(false);
+                const order = await orderRes.json();
+
+                // Open PayPal in new window
+                const approveUrl = order.links.find((link: any) => link.rel === 'approve').href;
+                window.open(approveUrl, '_blank');
+
+                alert('Complete payment in PayPal window. After payment, return here.');
+                setLoading(false);
+
+            } else {
+                // Razorpay Flow (India)
+                const orderRes = await fetch(`${apiUrl}/payment/razorpay/order`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: totalAmount,
+                        currency: "INR",
+                        receipt: `shop_order_${Date.now()}`
+                    })
+                });
+
+                if (!orderRes.ok) {
+                    alert("Failed to create order");
+                    setLoading(false);
+                    return;
+                }
+
+                const order = await orderRes.json();
+
+                const options = {
+                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: "Cosmic Gems",
+                    description: "Purchase of spiritual products",
+                    order_id: order.id,
+                    prefill: {
+                        name: buyerDetails.name,
+                        email: buyerDetails.email,
+                        contact: buyerDetails.mobile
+                    },
+                    theme: {
+                        color: "#F59E0B"
+                    },
+                    handler: async function (response: any) {
+                        const verifyRes = await fetch(`${apiUrl}/payment/razorpay/verify`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        if (verifyRes.ok) {
+                            await createShopOrder(token, totalAmount);
+                            alert("Payment successful! Your order has been placed.");
+                            clearCart();
+                            router.push("/shop");
+                        } else {
+                            alert("Payment verification failed");
+                        }
+                    }
+                };
+
+                const rzp = new (window as any).Razorpay(options);
+                rzp.open();
+                setLoading(false);
+            }
 
         } catch (error) {
             console.error("Payment error:", error);
@@ -179,7 +212,22 @@ export default function Checkout() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                     Checkout
                 </h1>
-                <div className="w-8"></div>
+
+                {/* Currency Toggle */}
+                <div className="flex gap-2 bg-white/5 p-1 rounded-lg">
+                    <button
+                        onClick={() => setIsInternational(false)}
+                        className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${!isInternational ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        ₹ INR
+                    </button>
+                    <button
+                        onClick={() => setIsInternational(true)}
+                        className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${isInternational ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        $ USD
+                    </button>
+                </div>
             </header>
 
             <main className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -343,7 +391,7 @@ export default function Checkout() {
                     <div className="border-t border-white/10 pt-4 space-y-2">
                         <div className="flex justify-between text-lg">
                             <span>Subtotal:</span>
-                            <span className="font-bold">₹{getTotalPrice()}</span>
+                            <span className="font-bold">{isInternational ? '$' : '₹'}{getDisplayPrice()}</span>
                         </div>
                         <div className="flex justify-between text-lg">
                             <span>Shipping:</span>
@@ -351,7 +399,7 @@ export default function Checkout() {
                         </div>
                         <div className="flex justify-between text-2xl font-bold border-t border-white/10 pt-2 mt-2">
                             <span>Total:</span>
-                            <span className="text-amber-400">₹{getTotalPrice()}</span>
+                            <span className="text-amber-400">{isInternational ? '$' : '₹'}{getDisplayPrice()}</span>
                         </div>
                     </div>
 
@@ -372,7 +420,7 @@ export default function Checkout() {
                     </button>
 
                     <p className="text-center text-xs text-gray-500 mt-4">
-                        🔒 Secure payment powered by Razorpay
+                        🔒 Secure payment powered by {isInternational ? 'PayPal' : 'Razorpay'}
                     </p>
                 </div>
             </main>
