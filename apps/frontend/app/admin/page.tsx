@@ -254,50 +254,86 @@ export default function AdminDashboard() {
                 newImages[index] = "uploading...";
                 setProductForm({ ...productForm, images: newImages });
 
-                // Convert to base64
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    const base64 = event.target?.result as string;
+                // Compress image before upload
+                const compressedBase64 = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
 
-                    try {
-                        const token = localStorage.getItem("token");
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+                            // Resize if too large (max 1200px)
+                            const maxSize = 1200;
+                            if (width > maxSize || height > maxSize) {
+                                if (width > height) {
+                                    height = (height / width) * maxSize;
+                                    width = maxSize;
+                                } else {
+                                    width = (width / height) * maxSize;
+                                    height = maxSize;
+                                }
+                            }
 
-                        // Upload to Cloudinary via backend
-                        const res = await fetch(`${apiUrl}/upload/image`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ image: base64 })
-                        });
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx?.drawImage(img, 0, 0, width, height);
 
-                        if (res.ok) {
-                            const data = await res.json();
-                            console.log(`Image ${index + 1} uploaded to Cloudinary:`, data.url);
+                            // Compress to 70% quality
+                            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                            resolve(compressed);
+                        };
+                        img.onerror = reject;
+                        img.src = event.target?.result as string;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
 
-                            const updatedImages = [...productForm.images];
-                            updatedImages[index] = data.url;
-                            setProductForm({ ...productForm, images: updatedImages });
-                        } else {
-                            alert(`Failed to upload image ${index + 1}`);
-                            const updatedImages = [...productForm.images];
-                            updatedImages[index] = "";
-                            setProductForm({ ...productForm, images: updatedImages });
-                        }
-                    } catch (error) {
-                        console.error("Upload error:", error);
-                        alert("Image upload failed");
+                try {
+                    const token = localStorage.getItem("token");
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+                    // Upload to Cloudinary via backend
+                    const res = await fetch(`${apiUrl}/upload/image`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ image: compressedBase64 })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        console.log(`Image ${index + 1} uploaded to Cloudinary:`, data.url);
+
+                        const updatedImages = [...productForm.images];
+                        updatedImages[index] = data.url;
+                        setProductForm({ ...productForm, images: updatedImages });
+                    } else {
+                        const errorText = await res.text();
+                        console.error(`Upload failed (${res.status}):`, errorText);
+                        alert(`Failed to upload image ${index + 1}: ${res.status}`);
                         const updatedImages = [...productForm.images];
                         updatedImages[index] = "";
                         setProductForm({ ...productForm, images: updatedImages });
                     }
-                };
-                reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error("Upload error:", error);
+                    alert("Image upload failed");
+                    const updatedImages = [...productForm.images];
+                    updatedImages[index] = "";
+                    setProductForm({ ...productForm, images: updatedImages });
+                }
             } catch (error) {
                 console.error("Image processing error:", error);
                 alert("Failed to process image");
+                const updatedImages = [...productForm.images];
+                updatedImages[index] = "";
+                setProductForm({ ...productForm, images: updatedImages });
             }
         }
     };
