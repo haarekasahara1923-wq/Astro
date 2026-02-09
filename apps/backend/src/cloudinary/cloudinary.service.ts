@@ -11,6 +11,27 @@ export class CloudinaryService {
         });
     }
 
+    async generateUploadSignature() {
+        const timestamp = Math.round(Date.now() / 1000);
+        const folder = 'cosmic-gems';
+
+        const signature = cloudinary.utils.api_sign_request(
+            {
+                timestamp,
+                folder,
+            },
+            process.env.CLOUDINARY_API_SECRET!
+        );
+
+        return {
+            signature,
+            timestamp,
+            folder,
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+            apiKey: process.env.CLOUDINARY_API_KEY,
+        };
+    }
+
     async uploadImage(base64String: string): Promise<string> {
         try {
             const result = await cloudinary.uploader.upload(base64String, {

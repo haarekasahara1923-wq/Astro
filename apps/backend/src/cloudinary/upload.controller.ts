@@ -1,10 +1,17 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from './cloudinary.service';
 
 @Controller('upload')
 export class UploadController {
     constructor(private cloudinaryService: CloudinaryService) { }
+
+    @Get('signature')
+    @UseGuards(JwtAuthGuard)
+    async getUploadSignature() {
+        const signature = await this.cloudinaryService.generateUploadSignature();
+        return signature;
+    }
 
     @Post('image')
     @UseGuards(JwtAuthGuard)

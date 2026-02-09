@@ -254,14 +254,29 @@ export default function AdminDashboard() {
                 newImages[index] = "uploading...";
                 setProductForm({ ...productForm, images: newImages });
 
-                // Direct upload to Cloudinary (bypasses backend)
+                // Get signature from backend
+                const token = localStorage.getItem("token");
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+                const signatureRes = await fetch(`${apiUrl}/upload/signature`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!signatureRes.ok) {
+                    throw new Error('Failed to get upload signature');
+                }
+
+                const { signature, timestamp, folder, cloudName, apiKey } = await signatureRes.json();
+
+                // Upload to Cloudinary with signature
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('upload_preset', 'cosmic_gems_preset'); // We'll create this
-                formData.append('cloud_name', 'dqh33zpxu');
+                formData.append('signature', signature);
+                formData.append('timestamp', timestamp.toString());
+                formData.append('folder', folder);
+                formData.append('api_key', apiKey);
 
-                // Upload directly to Cloudinary
-                const cloudinaryUrl = `https://api.cloudinary.com/v1_1/dqh33zpxu/image/upload`;
+                const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
                 const res = await fetch(cloudinaryUrl, {
                     method: 'POST',
@@ -278,7 +293,7 @@ export default function AdminDashboard() {
                 } else {
                     const errorText = await res.text();
                     console.error(`Upload failed (${res.status}):`, errorText);
-                    alert(`Failed to upload image ${index + 1}. Please check Cloudinary upload preset.`);
+                    alert(`Failed to upload image ${index + 1}`);
                     const updatedImages = [...productForm.images];
                     updatedImages[index] = "";
                     setProductForm({ ...productForm, images: updatedImages });
