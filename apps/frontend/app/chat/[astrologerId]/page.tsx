@@ -104,6 +104,9 @@ export default function ChatPage() {
                 const zim = ZIM.getInstance();
                 if (!zim) {
                     const instance = ZIM.create({ appID: APP_ID });
+                    if (!instance) {
+                        throw new Error("Failed to create ZIM instance");
+                    }
                     setZegoClient(instance);
 
                     // Generate token
@@ -113,7 +116,8 @@ export default function ChatPage() {
                     await instance.login({ userID: userId, userName }, token);
 
                     // Set up message receiver
-                    instance.on("receivePeerMessage", (zim: any, data: any) => {
+                    // @ts-ignore: bypass strict event typing for ZIM dynamic events
+                    instance.on("peerMessageReceived", (zim: any, data: any) => {
                         const { messageList, fromConversationID } = data;
                         messageList.forEach((msg: any) => {
                             if (msg.type === 1) {
@@ -131,6 +135,7 @@ export default function ChatPage() {
                         });
                     });
 
+                    // @ts-ignore
                     instance.on("connectionStateChanged", (zim: any, data: any) => {
                         if (data.state === 3) {
                             setIsConnected(true);
@@ -330,10 +335,10 @@ export default function ChatPage() {
                         )}
                         <div
                             className={`max-w-[75%] rounded-2xl px-4 py-3 ${msg.isSelf
-                                    ? "bg-gradient-to-br from-amber-400 to-orange-500 text-black"
-                                    : msg.senderId === "System"
-                                        ? "bg-white/5 border border-white/10 text-gray-300 text-sm italic"
-                                        : "bg-white/10 border border-white/5"
+                                ? "bg-gradient-to-br from-amber-400 to-orange-500 text-black"
+                                : msg.senderId === "System"
+                                    ? "bg-white/5 border border-white/10 text-gray-300 text-sm italic"
+                                    : "bg-white/10 border border-white/5"
                                 }`}
                         >
                             {!msg.isSelf && msg.senderId !== "System" && (
