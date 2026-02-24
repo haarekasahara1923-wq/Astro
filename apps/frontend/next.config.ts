@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {},
   // Needed for ZegoCloud WebRTC which uses native browser APIs
   webpack: (config, { isServer }) => {
     if (isServer) {
