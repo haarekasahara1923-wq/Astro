@@ -67,7 +67,8 @@ export default function Astrologers() {
             setShowAuthModal(true);
             return;
         }
-        window.location.href = `/call/${astro.id}`;
+        // Call uses the video page — user can turn off camera for voice-only
+        window.location.href = `/video/${astro.id}?mode=call`;
     };
 
     const handleVideoClick = (astro: Astrologer) => {
@@ -266,20 +267,27 @@ export default function Astrologers() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-3 gap-2">
                                         <button
                                             onClick={() => handleChatClick(astro)}
-                                            className="w-full py-2.5 rounded-xl border border-amber-500/50 text-amber-400 font-medium text-sm hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-2"
+                                            className="w-full py-2.5 rounded-xl border border-amber-500/50 text-amber-400 font-medium text-xs hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-1.5"
                                         >
-                                            <MessageCircle className="w-4 h-4" />
+                                            <MessageCircle className="w-3.5 h-3.5" />
                                             Chat
                                         </button>
                                         <button
                                             onClick={() => handleCallClick(astro)}
-                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-xs hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
                                         >
-                                            <Phone className="w-4 h-4" />
+                                            <Phone className="w-3.5 h-3.5" />
                                             Call
+                                        </button>
+                                        <button
+                                            onClick={() => handleVideoClick(astro)}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-bold text-xs hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
+                                        >
+                                            <Video className="w-3.5 h-3.5" />
+                                            Video
                                         </button>
                                     </div>
                                 </div>
