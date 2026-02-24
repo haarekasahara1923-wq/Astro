@@ -12,6 +12,7 @@ import { HoroscopeModule } from './horoscope/horoscope.module';
 import { KundaliModule } from './kundali/kundali.module';
 import { ShopModule } from './shop/shop.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { ZegoModule } from './zego/zego.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     HoroscopeModule,
     KundaliModule,
     ShopModule,
-    CloudinaryModule
+    CloudinaryModule,
+    ZegoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
